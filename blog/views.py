@@ -8,9 +8,10 @@ from django.core.mail import send_mail
 from django.views.decorators.http import require_POST
 from taggit.models import Tag
 from django.db.models import Count
-from .utils import send_post_email
 from django.http import HttpResponse
 from django.contrib.auth.models import User
+from django.template.loader import render_to_string
+
 
 class PostListView(ListView):
 
@@ -72,7 +73,8 @@ def post_share(request, post_id):
             post_url = request.build_absolute_uri( post.get_absolute_url())
             subject = f"{cd['name']} recommends you read {post.title}"
             message = f"Read {post.title} at {post_url}\n\n {cd['name']}\'s comments: {cd['comments']}"
-            send_mail(subject, message, 'timur3373586@gmail.com', [cd['to']])
+            html_message = render_to_string('blog/post/newMail.html', {'post': post, 'post_url': post_url, 'name': cd['name'], 'comments': cd['comments']} )
+            send_mail(subject, message, 'timur3373586@gmail.com', [cd['to']], html_message= html_message, fail_silently=False)
             sent = True
     else:
         form = EmailPostForm()
@@ -102,8 +104,3 @@ def post_comment(request, post_id):
 
 
 
-def notify_user_about_post(request, user_id, post_id):
-    user = get_object_or_404(User, id=user_id)
-    post = get_object_or_404(Post, id=post_id)
-    send_post_email(user, post)
-    return HttpResponse("Email sent!")
