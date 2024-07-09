@@ -8,7 +8,9 @@ from django.core.mail import send_mail
 from django.views.decorators.http import require_POST
 from taggit.models import Tag
 from django.db.models import Count
-
+from .utils import send_post_email
+from django.http import HttpResponse
+from django.contrib.auth.models import User
 
 class PostListView(ListView):
 
@@ -96,3 +98,12 @@ def post_comment(request, post_id):
                             {'post': post,
                             'form': form,
                             'comment': comment})
+
+
+
+
+def notify_user_about_post(request, user_id, post_id):
+    user = get_object_or_404(User, id=user_id)
+    post = get_object_or_404(Post, id=post_id)
+    send_post_email(user, post)
+    return HttpResponse("Email sent!")
